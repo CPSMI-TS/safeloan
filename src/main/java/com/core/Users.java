@@ -1,6 +1,5 @@
 package com.core;
 
-
 import com.google.gson.Gson;
 import com.core.dbService.entities.Group;
 import com.core.dbService.entities.User;

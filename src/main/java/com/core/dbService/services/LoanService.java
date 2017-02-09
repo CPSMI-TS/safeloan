@@ -4,12 +4,10 @@ import com.core.dbService.entities.Item;
 import com.core.dbService.entities.Loan;
 import com.core.dbService.entities.LoanUsers;
 import com.core.dbService.entities.User;
-import org.hibernate.Criteria;
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
-import org.hibernate.Transaction;
+import org.hibernate.*;
 import org.hibernate.criterion.Restrictions;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -59,7 +57,7 @@ public class LoanService extends DBService {
             id = (Integer) session.save(new Loan(payerId, sum, users.size() + 1));
             session.save(new LoanUsers(payerId, id, 2, share, 1));
             User payer = session.load(User.class, payerId);
-            payer.setDebt(payer.getDebt() + share);
+            payer.setDebt(payer.getDebt() + sum);
             for (User user : users) {
                 if (Objects.equals(user.getUserId(), payerId))
                     continue;
@@ -90,6 +88,24 @@ public class LoanService extends DBService {
         User payer = userService.getUserById(getLoanById(loanId).getPayer());
         session.close();
         return payer;
+    }
+
+    public List<User> getLoanUsers(Integer id) throws HibernateException {
+        Session session = sessionFactory.openSession();
+        Criteria criteria = session.createCriteria(LoanUsers.class);
+        List<LoanUsers> loanUsersList = (List<LoanUsers>) criteria.add(Restrictions.eq("loan_id", id)).list();
+        List<Integer> usersIDs = new ArrayList<Integer>() {
+        };
+        for (LoanUsers user : loanUsersList) {
+            usersIDs.add(user.getUserId());
+        }
+        List<User> users = null;
+        if (usersIDs != null && !usersIDs.isEmpty()) {
+            Criteria usersCriteria = session.createCriteria(User.class);
+            users = (List<User>) usersCriteria.add(Restrictions.in("user_id", usersIDs)).list();
+        }
+        session.close();
+        return users;
     }
 
     public boolean changeState(Integer state, Integer loanId) {

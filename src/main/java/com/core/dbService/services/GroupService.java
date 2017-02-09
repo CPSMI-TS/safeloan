@@ -1,8 +1,6 @@
 package com.core.dbService.services;
 
-import com.core.dbService.entities.Group;
-import com.core.dbService.entities.User;
-import com.core.dbService.entities.UsersGroups;
+import com.core.dbService.entities.*;
 import com.core.dbService.enums.GroupType;
 import org.hibernate.*;
 import org.hibernate.criterion.Restrictions;
