@@ -46,7 +46,8 @@
     <orderEntry type="library" name="Maven: org.codehaus.jackson:jackson-mapper-asl:1.7.1" level="project" />
     <orderEntry type="library" name="Maven: org.codehaus.jackson:jackson-jaxrs:1.7.1" level="project" />
     <orderEntry type="library" name="Maven: org.codehaus.jackson:jackson-xc:1.7.1" level="project" />
-    <orderEntry type="library" name="Maven: com.sun.jersey:jersey-client:1.8" level="project" />
+    <orderEntry type="library" name="Maven: com.sun.jersey:jersey-client:1.19" level="project" />
+    <orderEntry type="library" name="Maven: javax.ws.rs:javax.ws.rs-api:2.0.1" level="project" />
     <orderEntry type="library" name="Maven: org.hibernate:hibernate-core:5.2.6.Final" level="project" />
     <orderEntry type="library" name="Maven: org.jboss.logging:jboss-logging:3.3.0.Final" level="project" />
     <orderEntry type="library" name="Maven: org.hibernate.javax.persistence:hibernate-jpa-2.1-api:1.0.0.Final" level="project" />

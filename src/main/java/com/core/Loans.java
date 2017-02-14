@@ -3,6 +3,7 @@ package com.core;
 import com.core.dbService.entities.User;
 import com.core.dbService.services.GroupService;
 import com.core.dbService.services.UserService;
+import com.core.jsonRequests.JsonAddLoanRequest;
 import com.google.gson.Gson;
 import com.core.dbService.entities.Loan;
 import com.core.dbService.services.LoanService;
@@ -10,6 +11,8 @@ import com.core.dbService.services.LoanService;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.net.URI;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -40,66 +43,92 @@ public class Loans {
     @GET
     @Path("{id: \\d+}")
     @Produces(MediaType.APPLICATION_JSON)
-    public String getLoan(@PathParam("id") int id) {
+    public Response getLoan(@PathParam("id") int id) {
         LoanService loanService = new LoanService();
         Loan loan = loanService.getLoanById(id);
         if (loan == null) {
             throw new WebApplicationException(Response.Status.NOT_FOUND);
         }
         loanService.stop();
-        return "{\"loan\": " + new Gson().toJson(loan) + "}";
+        return Response.ok(loan, MediaType.APPLICATION_JSON).build();
     }
 
     @GET
     @Path("{id: \\d+}/payer")
     @Produces(MediaType.APPLICATION_JSON)
-    public String getLoanPayer(@PathParam("id") int id) {
+    public Response getLoanPayer(@PathParam("id") int id) {
         LoanService loanService = new LoanService();
-        User user = loanService.getLoanPayer(id);
-        if (user == null) {
+        User payer = loanService.getLoanPayer(id);
+        if (payer == null) {
+            loanService.stop();
             throw new WebApplicationException(Response.Status.NOT_FOUND);
         }
         loanService.stop();
-        return "{\"payer\": " + new Gson().toJson(user) + "}";
+        return Response.ok(payer, MediaType.APPLICATION_JSON).build();
+    }
+
+    @POST
+    @Path("/add_plain")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response addLoanPlain(@QueryParam("group") int id, @QueryParam("payer") int payer, @QueryParam("sum") double sum) {
+        GroupService groupService = new GroupService();
+        ArrayList<User> users = groupService.getGroupUsers(id);
+        if (!groupService.checkGroupExists(id)) {
+            groupService.stop();
+            throw new WebApplicationException(Response.Status.NOT_FOUND);
+        } else Users.checkUserExists(payer);
+        groupService.stop();
+        if (!Users.isGroupMember(payer, id))
+            return Response.status(Response.Status.PRECONDITION_FAILED).build();
+        LoanService loanService = new LoanService();
+        Integer loanId = loanService.addLoanAndUsers(users, payer, sum);
+        Loan loan = loanService.getLoanById(loanId);
+        loanService.stop();
+        if (loanId == null)
+            throw new WebApplicationException(Response.Status.BAD_REQUEST);
+        return Response.ok(loan, MediaType.APPLICATION_JSON).build();
     }
 
     @POST
     @Path("/add")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response addLoan(@QueryParam("group") int id, @QueryParam("payer") int payer, @QueryParam("sum") double sum) {
-        GroupService groupService = new GroupService();
-        List<User> users = groupService.getGroupUsers(id);
+    public Response addLoan(String loanRequest) {
+        Gson gson = new Gson();
+        JsonAddLoanRequest request = gson.fromJson(loanRequest, JsonAddLoanRequest.class);
+        ArrayList<User> users = request.getLoanUsers();
         LoanService loanService = new LoanService();
-        Integer loanId = loanService.addLoanAndUsers(users, payer, sum);
-        if (loanId == null)
-            throw new WebApplicationException(Response.Status.BAD_REQUEST);
-        groupService.stop();
+        User payer = request.getPayer();
+        Double sum = request.getSum();
+        if (users == null || users.isEmpty() || payer == null || sum < 10.0) {
+            loanService.stop();
+            throw new WebApplicationException(Response.Status.NOT_FOUND);
+        }
+        Integer loanId = loanService.addLoanAndUsers(users, payer.getUserId(), sum);
+        Loan loan = loanService.getLoanById(loanId);
         loanService.stop();
-        return Response.ok().build();
+        if (loan == null)
+            throw new WebApplicationException(Response.Status.BAD_REQUEST);
+        return Response.created(URI.create("/" + loanId)).entity(loan).build();
     }
 
     @GET
     @Path("{id: \\d+}/participants")
     @Produces(MediaType.APPLICATION_JSON)
-    public String getGroupUsers(@PathParam("id") int id) {
+    public Response getGroupUsers(@PathParam("id") int id) {
         LoanService loanService = new LoanService();
         UserService userService = new UserService();
-        if (!loanService.checkLoanExists(id))
+        if (!loanService.checkLoanExists(id)) {
+            loanService.stop();
             throw new WebApplicationException(Response.Status.NOT_FOUND);
+        }
         List<User> users = loanService.getLoanUsers(id);
         if (users == null || users.isEmpty()) {
+            loanService.stop();
             throw new WebApplicationException(Response.Status.NOT_FOUND);
         }
-        String response = "{\"users\": [";
-        int i = 0;
-        for (User user : users) {
-            i++;
-            response = (i == users.size() ? response.concat(user.toString()) : response.concat(user.toString() + ", "));
-        }
-        response = response.concat("]}");
         loanService.stop();
         userService.stop();
-        return response;
+        return Response.ok(users, MediaType.APPLICATION_JSON).build();
     }
 
 /*todo: авторизация решит проблему проверки прав юзера на эти действия

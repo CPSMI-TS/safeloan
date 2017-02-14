@@ -4,6 +4,7 @@ import com.core.dbService.entities.Item;
 import com.core.dbService.entities.Loan;
 import com.core.dbService.entities.LoanUsers;
 import com.core.dbService.entities.User;
+import com.core.dbService.enums.LoanState;
 import org.hibernate.*;
 import org.hibernate.criterion.Restrictions;
 
@@ -47,21 +48,24 @@ public class LoanService extends DBService {
         Session session = sessionFactory.openSession();
         Transaction tx = null;
         Integer id = -1;
-        Double share = sum / (users.size() + 1);
+        int usersCount = users.size() + 1;
         for (User user : users) {
-            if (Objects.equals(user.getUserId(), payerId))
-                share = sum / users.size();
+            if (Objects.equals(user.getUserId(), payerId)) {
+                usersCount--;
+                break;
+            }
         }
+        Double share = sum / usersCount;
         try {
             tx = session.beginTransaction();
-            id = (Integer) session.save(new Loan(payerId, sum, users.size() + 1));
-            session.save(new LoanUsers(payerId, id, 2, share, 1));
+            id = (Integer) session.save(new Loan(payerId, sum, usersCount));
+            session.save(new LoanUsers(payerId, id, LoanState.PAID, share, 1));
             User payer = session.load(User.class, payerId);
             payer.setDebt(payer.getDebt() + sum);
             for (User user : users) {
                 if (Objects.equals(user.getUserId(), payerId))
                     continue;
-                session.save(new LoanUsers(user.getUserId(), id, 0, share, 0));
+                session.save(new LoanUsers(user.getUserId(), id, LoanState.NOT_PAID, share, 0));
                 User loanUser = session.load(User.class, user.getUserId());
                 loanUser.setDebt(loanUser.getDebt() - share);
                 session.flush();
@@ -85,7 +89,10 @@ public class LoanService extends DBService {
     public User getLoanPayer(Integer loanId) {
         UserService userService = new UserService();
         Session session = sessionFactory.openSession();
-        User payer = userService.getUserById(getLoanById(loanId).getPayer());
+        Loan loan = getLoanById(loanId);
+        if (loan == null)
+            return null;
+        User payer = userService.getUserById(loan.getPayer());
         session.close();
         return payer;
     }
@@ -113,7 +120,7 @@ public class LoanService extends DBService {
         Transaction tx = null;
         if (!checkLoanExists(loanId))
             return false;
-        if (state != 0 || state != 1 || state != 2)
+        if (state != LoanState.NOT_PAID || state != LoanState.WAITING_CONFIRMATION || state != LoanState.PAID)
             return false;
         try {
             tx = session.beginTransaction();
@@ -157,7 +164,7 @@ public class LoanService extends DBService {
         return (List<Item>) criteria.add(Restrictions.eq("item_loan", loanId)).list();
     }
 
-    //todo: определить, нужен ли такой функционал
+    //todo: определить, нужен ли такой функционал, добавить изменение debt и состояние долга
     private boolean changeSum(Double sum, Integer loanId) {
         Session session = sessionFactory.openSession();
         Transaction tx = null;
@@ -180,7 +187,7 @@ public class LoanService extends DBService {
         }
     }
 
-    //todo: реализовать добавление юзера к чеку после добавления чека
+    //todo: реализовать добавление юзера к чеку после добавления чека, добавить изменение debt и состояние долга
     private boolean addLoanUser(Integer userId, Integer loanId) {
         Session session = sessionFactory.openSession();
         Transaction tx = null;

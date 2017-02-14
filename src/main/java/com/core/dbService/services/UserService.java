@@ -2,6 +2,7 @@ package com.core.dbService.services;
 
 import com.core.dbService.entities.*;
 import org.hibernate.*;
+import org.hibernate.criterion.CriteriaQuery;
 import org.hibernate.criterion.Restrictions;
 
 import java.util.ArrayList;
@@ -67,8 +68,7 @@ public class UserService extends DBService {
         Session session = sessionFactory.openSession();
         Criteria criteria = session.createCriteria(UsersGroups.class);
         List<UsersGroups> usersGroupsList = criteria.add(Restrictions.eq("user_id", userId)).list();
-        List<Integer> groupsIDs = new ArrayList<Integer>() {
-        };
+        List<Integer> groupsIDs = new ArrayList<Integer>();
         for (UsersGroups ug : usersGroupsList) {
             groupsIDs.add(ug.getGroupId());
         }

@@ -135,7 +135,7 @@ public class GroupService extends DBService {
         return ids;
     }
 
-    public List<User> getGroupUsers(Integer id) throws HibernateException {
+    public ArrayList<User> getGroupUsers(Integer id) throws HibernateException {
         Session session = sessionFactory.openSession();
         Criteria criteria = session.createCriteria(UsersGroups.class);
         List<UsersGroups> usersGroupsList = (List<UsersGroups>) criteria.add(Restrictions.eq("group_id", id)).list();
@@ -144,10 +144,10 @@ public class GroupService extends DBService {
         for (UsersGroups ug : usersGroupsList) {
             usersIDs.add(ug.getUserId());
         }
-        List<User> users = null;
+        ArrayList<User> users = null;
         if (usersIDs != null && !usersIDs.isEmpty()) {
             Criteria usersCriteria = session.createCriteria(User.class);
-            users = (List<User>) usersCriteria.add(Restrictions.in("user_id", usersIDs)).list();
+            users = (ArrayList<User>) usersCriteria.add(Restrictions.in("user_id", usersIDs)).list();
         }
         session.close();
         return users;

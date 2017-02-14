@@ -1,15 +1,17 @@
 package com.core;
 
-import com.google.gson.Gson;
+import com.core.dbService.entities.Loan;
 import com.core.dbService.entities.Group;
 import com.core.dbService.entities.User;
 import com.core.dbService.services.GroupService;
 import com.core.dbService.services.UserService;
+import com.google.gson.Gson;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -17,16 +19,22 @@ import java.util.List;
  */
 @Path("/users")
 public class Users {
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public String getUsers() {
+    public String getUsers(@QueryParam("start") int start, @QueryParam("size") int size) {
         UserService userService = new UserService();
         User user;
         String response = "{\"users\": [";
-        for (int i = 1; i <= 3; i++) {
-            user = userService.getUserById(i);
-            if (user != null)
-                response = (i == 3 ? response.concat(user.toString()) : response.concat(user.toString() + ", "));
+        int i = 0;
+        int id = start;
+        while (i != size) {
+            user = userService.getUserById(id);
+            if (user != null) {
+                i++;
+                response = (i != size) ? response.concat(user.toString()) : response.concat(user.toString() + ", ");
+            }
+            id++;
         }
         response = response.concat("]}");
         userService.stop();
@@ -36,29 +44,127 @@ public class Users {
     @GET
     @Path("{id: \\d+}")
     @Produces(MediaType.APPLICATION_JSON)
-    public String getUser(@PathParam("id") int id) {
+    public Response getUser(@PathParam("id") int id) {
         UserService userService = new UserService();
         User user = userService.getUserById(id);
+        userService.stop();
         if (user == null) {
             throw new WebApplicationException(Response.Status.NOT_FOUND);
         }
-        userService.stop();
-        return "{\"user\": " + new Gson().toJson(user) + "}";
+        return Response.ok(user, MediaType.APPLICATION_JSON).build();
     }
 
     @GET
     @Path("{login}")
     @Produces(MediaType.APPLICATION_JSON)
-    public String getUser(@PathParam("login") String login) {
+    public Response getUser(@PathParam("login") String login) {
         UserService userService = new UserService();
         User user = userService.getUserByLogin(login);
+        userService.stop();
         if (user == null) {
             throw new WebApplicationException(Response.Status.NOT_FOUND);
         }
-        userService.stop();
-        return "{\"user\": " + new Gson().toJson(user) + "}";
+        return Response.ok(user, MediaType.APPLICATION_JSON).build();
     }
 
+    @POST
+    @Path("/signup")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response signUp(String jsonUser) {
+        Gson gson = new Gson();
+        User newUser = gson.fromJson(jsonUser, User.class);
+        int id;
+        User user = null;
+        UserService userService = new UserService();
+        try {
+            id = userService.addUser(newUser.getUserLogin(), newUser.getPassword(), newUser.getDebt());
+            if (id != -1)
+                user = userService.getUserById(id);
+        } catch (Exception e) {
+            throw new WebApplicationException(e);
+        } finally {
+            userService.stop();
+        }
+        return (id == -1 ? Response.notModified().build() : Response.created(URI.create("/" + id)).entity(user).build());
+    }
+
+    @GET
+    @Path("{id: \\d+}/groups")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getGroupUsers(@PathParam("id") int id) {
+        checkUserExists(id);
+        UserService userService = new UserService();
+        List<Group> groups = userService.getUserGroups(id);
+        userService.stop();
+        if (groups == null) {
+            throw new WebApplicationException(Response.Status.NOT_FOUND);
+        }
+        return Response.ok(groups, MediaType.APPLICATION_JSON).build();
+    }
+
+    @GET
+    @Path("{id: \\d+}/loans")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getUserLoans(@PathParam("id") int id) {
+        checkUserExists(id);
+        UserService userService = new UserService();
+        List<Loan> loans = userService.getUserLoans(id);
+        userService.stop();
+        if (loans == null) {
+            throw new WebApplicationException(Response.Status.NOT_FOUND);
+        }
+        return Response.ok(loans, MediaType.APPLICATION_JSON).build();
+    }
+
+    @GET
+    @Path("{id: \\d+}/payments")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getUserPayments(@PathParam("id") int id) {
+        checkUserExists(id);
+        UserService userService = new UserService();
+        List<Loan> loans = userService.getUserPayments(id);
+        userService.stop();
+        if (loans == null) {
+            throw new WebApplicationException(Response.Status.NOT_FOUND);
+        }
+        return Response.ok(loans, MediaType.APPLICATION_JSON).build();
+    }
+
+    @DELETE
+    @Path("{id: \\d+}/quit")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response quit(@PathParam("id") int id) {
+        checkUserExists(id);
+        UserService userService = new UserService();
+        User user = userService.getUserById(id);
+        boolean deleted = userService.deleteUser(user);
+        userService.stop();
+        if (!deleted)
+            throw new WebApplicationException(Response.Status.NOT_FOUND);
+        else return Response.ok().build();
+    }
+
+    static boolean isGroupMember(Integer userId, Integer groupId) {
+        GroupService groupService = new GroupService();
+        ArrayList<User> users = groupService.getGroupUsers(groupId);
+        groupService.stop();
+        List<Integer> ids = new ArrayList<>(users.size());
+        for (User user : users) {
+            ids.add(user.getUserId());
+        }
+        return ids.contains(userId);
+    }
+
+    static void checkUserExists(int id) throws WebApplicationException {
+        UserService userService = new UserService();
+        User user = userService.getUserById(id);
+        userService.stop();
+        if (user == null) {
+            throw new WebApplicationException(Response.Status.NOT_FOUND);
+        }
+    }
+
+/*
     @POST
     @Path("/signup")
     @Produces(MediaType.APPLICATION_JSON)
@@ -68,39 +174,5 @@ public class Users {
         userService.stop();
         return (id == -1 ? Response.notModified().build() : Response.created(URI.create("../" + id)).build());
     }
-
-    @GET
-    @Path("{id: \\d+}/groups")
-    @Produces(MediaType.APPLICATION_JSON)
-    public String getGroupUsers(@PathParam("id") int id) {
-        GroupService groupService = new GroupService();
-        UserService userService = new UserService();
-        List<Group> groups = userService.getUserGroups(id);
-        if (groups == null) {
-            throw new WebApplicationException(Response.Status.NOT_FOUND);
-        }
-        String response = "{\"groups\": [";
-        int i = 0;
-        for (Group group : groups) {
-            i++;
-            response = (i == groups.size() ? response.concat(group.toString()) : response.concat(group.toString() + ", "));
-        }
-        response = response.concat("]}");
-        groupService.stop();
-        userService.stop();
-        return response;
-    }
-
-    @DELETE
-    @Path("{id: \\d+}/quit")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response quit(@PathParam("id") int id) {
-        UserService userService = new UserService();
-        User user = userService.getUserById(id);
-        boolean deleted = userService.deleteUser(user);
-        userService.stop();
-        if (!deleted)
-            throw new WebApplicationException(Response.Status.NOT_FOUND);
-        else return Response.ok().build();
-    }
+*/
 }
