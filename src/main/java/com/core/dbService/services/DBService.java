@@ -13,7 +13,7 @@ public class DBService {
     private final SessionFactory sessionFactory;
 
     public DBService() {
-        Configuration configuration = SetupConfig.configureHibernate("root", "javaforever");
+        Configuration configuration = SetupConfig.configureHibernate("root", "mybigdatabase");
         StandardServiceRegistryBuilder builder = new StandardServiceRegistryBuilder();
         builder.applySettings(configuration.getProperties());
         ServiceRegistry registry = builder.build();

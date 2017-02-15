@@ -11,10 +11,10 @@ public class SetupConfig {
         Configuration config = new Configuration();
         config.setProperty("hibernate.dialect", "org.hibernate.dialect.MySQLDialect");
         config.setProperty("hibernate.connection.driver_class", "com.mysql.jdbc.Driver");
-        config.setProperty("hibernate.connection.url", "jdbc:mysql://localhost:3306/safe_loan_test?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC");
+        config.setProperty("hibernate.connection.url", "jdbc:mysql://jas@safeloan.gentu.ru/safeloan_demo?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC");
         config.setProperty("hibernate.connection.username", username);
         config.setProperty("hibernate.connection.password", pass);
-        config.setProperty("hibernate.show_sql", "true");
+        config.setProperty("hibernate.show_sql", "false");
         //config.setProperty("hibernate.hbm2ddl.auto", "update");
         config.setProperty("hibernate.ejb.naming_strategy", "org.hibernate.cfg.ImprovedNamingStrategy");
         config.addAnnotatedClass(User.class);
