@@ -103,7 +103,7 @@ public class Loans {
             loanService.stop();
             throw new WebApplicationException(Response.Status.NOT_FOUND);
         }
-        Integer loanId = loanService.addLoanAndUsers(users, payer.getUserId(), sum);
+        Integer loanId = loanService.addLoanUsersPicture(users, payer.getUserId(), sum, request.getUrl(), request.getReturnDate());
         Loan loan = loanService.getLoanById(loanId);
         loanService.stop();
         if (loan == null)

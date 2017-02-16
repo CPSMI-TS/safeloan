@@ -9,6 +9,7 @@ import org.hibernate.*;
 import org.hibernate.criterion.Restrictions;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 
@@ -59,6 +60,44 @@ public class LoanService extends DBService {
         try {
             tx = session.beginTransaction();
             id = (Integer) session.save(new Loan(payerId, sum, usersCount));
+            session.save(new LoanUsers(payerId, id, LoanState.PAID, share, 1));
+            User payer = session.load(User.class, payerId);
+            payer.setDebt(payer.getDebt() + sum);
+            for (User user : users) {
+                if (Objects.equals(user.getUserId(), payerId))
+                    continue;
+                session.save(new LoanUsers(user.getUserId(), id, LoanState.NOT_PAID, share, 0));
+                User loanUser = session.load(User.class, user.getUserId());
+                loanUser.setDebt(loanUser.getDebt() - share);
+                session.flush();
+            }
+            tx.commit();
+        } catch (Exception e) {
+            if (tx != null) {
+                tx.rollback();
+            }
+            id = -1;
+        } finally {
+            session.close();
+            return id;
+        }
+    }
+
+    public Integer addLoanUsersPicture(List<User> users, Integer payerId, Double sum, String url, Date returnDate) {
+        Session session = sessionFactory.openSession();
+        Transaction tx = null;
+        Integer id = -1;
+        int usersCount = users.size() + 1;
+        for (User user : users) {
+            if (Objects.equals(user.getUserId(), payerId)) {
+                usersCount--;
+                break;
+            }
+        }
+        Double share = sum / usersCount;
+        try {
+            tx = session.beginTransaction();
+            id = (Integer) session.save(new Loan(payerId, sum, usersCount, url, returnDate));
             session.save(new LoanUsers(payerId, id, LoanState.PAID, share, 1));
             User payer = session.load(User.class, payerId);
             payer.setDebt(payer.getDebt() + sum);
