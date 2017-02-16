@@ -9,14 +9,26 @@
         <servlet-class>com.sun.jersey.spi.container.servlet.ServletContainer</servlet-class>
 
         <init-param>
-            <param-name>com.sun.jersey.config.property.packages</param-name>
-            <param-value>com.core</param-value>
+            <param-name>javax.ws.rs.Application</param-name>
+            <param-value>com.core.controllers.SafeloanApplication</param-value>
         </init-param>
+
+        <init-param>
+            <param-name>com.sun.jersey.config.server.provider.packages</param-name>
+            <param-value>com.core.controllers;com.sun.jersey.json.impl.provider.entity;</param-value>
+        </init-param>
+
+        <init-param>
+            <param-name>com.sun.jersey.config.property.packages</param-name>
+            <param-value>com.core.controllers;com.sun.jersey.json.impl.provider.entity;</param-value>
+        </init-param>
+
 
         <init-param>
             <param-name>com.sun.jersey.api.json.POJOMappingFeature</param-name>
             <param-value>true</param-value>
         </init-param>
+
     </servlet>
 
     <servlet-mapping>

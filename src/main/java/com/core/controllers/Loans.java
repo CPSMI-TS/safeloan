@@ -1,4 +1,4 @@
-package com.core;
+package com.core.controllers;
 
 import com.core.dbService.entities.User;
 import com.core.dbService.services.GroupService;
@@ -50,7 +50,7 @@ public class Loans {
             throw new WebApplicationException(Response.Status.NOT_FOUND);
         }
         loanService.stop();
-        return Response.ok(loan, MediaType.APPLICATION_JSON).build();
+        return Response.ok(loan.toString(), MediaType.APPLICATION_JSON).build();
     }
 
     @GET
@@ -64,7 +64,7 @@ public class Loans {
             throw new WebApplicationException(Response.Status.NOT_FOUND);
         }
         loanService.stop();
-        return Response.ok(payer, MediaType.APPLICATION_JSON).build();
+        return Response.ok(payer.toString(), MediaType.APPLICATION_JSON).build();
     }
 
     @POST
@@ -86,7 +86,7 @@ public class Loans {
         loanService.stop();
         if (loanId == null)
             throw new WebApplicationException(Response.Status.BAD_REQUEST);
-        return Response.ok(loan, MediaType.APPLICATION_JSON).build();
+        return Response.ok(loan.toString(), MediaType.APPLICATION_JSON).build();
     }
 
     @POST
@@ -108,7 +108,7 @@ public class Loans {
         loanService.stop();
         if (loan == null)
             throw new WebApplicationException(Response.Status.BAD_REQUEST);
-        return Response.created(URI.create("/" + loanId)).entity(loan).build();
+        return Response.created(URI.create("/" + loanId)).entity(loan.toString()).type(MediaType.APPLICATION_JSON).build();
     }
 
     @GET
@@ -128,7 +128,7 @@ public class Loans {
         }
         loanService.stop();
         userService.stop();
-        return Response.ok(users, MediaType.APPLICATION_JSON).build();
+        return Response.ok(users.toString(), MediaType.APPLICATION_JSON).build();
     }
 
 /*todo: авторизация решит проблему проверки прав юзера на эти действия

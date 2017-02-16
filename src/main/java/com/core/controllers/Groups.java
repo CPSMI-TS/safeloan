@@ -1,4 +1,4 @@
-package com.core;
+package com.core.controllers;
 
 import com.google.gson.Gson;
 import com.core.dbService.entities.Group;
@@ -46,7 +46,7 @@ public class Groups {
             throw new WebApplicationException(Response.Status.NOT_FOUND);
         }
         groupService.stop();
-        return Response.ok(group, MediaType.APPLICATION_JSON).build();
+        return Response.ok(group.toString(), MediaType.APPLICATION_JSON).build();
     }
 
     @GET
@@ -56,10 +56,11 @@ public class Groups {
         GroupService groupService = new GroupService();
         Group group = groupService.getGroupByName(name);
         if (group == null) {
+            groupService.stop();
             throw new WebApplicationException(Response.Status.NOT_FOUND);
         }
         groupService.stop();
-        return Response.ok(group, MediaType.APPLICATION_JSON).build();
+        return Response.ok(group.toString(), MediaType.APPLICATION_JSON).build();
     }
 
     @POST
@@ -90,7 +91,8 @@ public class Groups {
         } finally {
             groupService.stop();
         }
-        return (id == -1 ? Response.notModified().build() : Response.created(URI.create("/" + id)).entity(group).build());
+        return (id == -1 ? Response.notModified().build() : Response.created(URI.create("/" + id))
+                .entity(group.toString()).type(MediaType.APPLICATION_JSON).build());
     }
 
 
@@ -108,7 +110,7 @@ public class Groups {
             groupService.stop();
             throw new WebApplicationException(Response.Status.NOT_FOUND);
         }
-        return Response.ok(users, MediaType.APPLICATION_JSON).build();
+        return Response.ok(users.toString(), MediaType.APPLICATION_JSON).build();
     }
 
     @POST

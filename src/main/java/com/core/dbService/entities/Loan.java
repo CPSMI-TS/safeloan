@@ -38,6 +38,10 @@ public class Loan {
     @Column(name = "loan_date")
     private Date loan_date;
 
+    @Temporal(TemporalType.DATE)
+    @Column(name = "return_date")
+    private Date return_date;
+
     @Column(name = "loan_url", length = 255)
     private String loan_url;
 
@@ -66,6 +70,25 @@ public class Loan {
         //this.loan_date = loanDate;
         //this.loan_description = description;
         //this.loan_url = loan_url;
+    }
+
+    public Loan(Integer payer, Double sum, Integer usersCount, String url) {
+        this.loan_payer = payer;
+        this.extended = 0;
+        this.loan_sum = sum;
+        this.loan_state = 0;
+        this.users_count = usersCount;
+        this.loan_url = url;
+    }
+
+    public Loan(Integer payer, Double sum, Integer usersCount, String url, Date returnDate) {
+        this.loan_payer = payer;
+        this.extended = 0;
+        this.loan_sum = sum;
+        this.loan_state = 0;
+        this.users_count = usersCount;
+        this.loan_url = url;
+        this.return_date = returnDate;
     }
 
     public Integer getLoanId() {
@@ -126,6 +149,14 @@ public class Loan {
 
     public void setLoanDate(Date loan_date) {
         this.loan_date = loan_date;
+    }
+
+    public Date getReturnDate() {
+        return return_date;
+    }
+
+    public void setReturnDate(Date return_date) {
+        this.return_date = return_date;
     }
 
     public void setLoanUrl(String loan_url) {

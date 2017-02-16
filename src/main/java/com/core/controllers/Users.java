@@ -1,4 +1,4 @@
-package com.core;
+package com.core.controllers;
 
 import com.core.dbService.entities.Loan;
 import com.core.dbService.entities.Group;
@@ -51,7 +51,7 @@ public class Users {
         if (user == null) {
             throw new WebApplicationException(Response.Status.NOT_FOUND);
         }
-        return Response.ok(user, MediaType.APPLICATION_JSON).build();
+        return Response.ok(user.toString(), MediaType.APPLICATION_JSON).build();
     }
 
     @GET
@@ -64,7 +64,7 @@ public class Users {
         if (user == null) {
             throw new WebApplicationException(Response.Status.NOT_FOUND);
         }
-        return Response.ok(user, MediaType.APPLICATION_JSON).build();
+        return Response.ok(user.toString(), MediaType.APPLICATION_JSON).build();
     }
 
     @POST
@@ -85,7 +85,8 @@ public class Users {
         } finally {
             userService.stop();
         }
-        return (id == -1 ? Response.notModified().build() : Response.created(URI.create("/" + id)).entity(user).build());
+        return (id == -1 ? Response.notModified().build() : Response.created(URI.create("/" + id))
+                .entity(user.toString()).type(MediaType.APPLICATION_JSON).build());
     }
 
     @GET
@@ -99,7 +100,7 @@ public class Users {
         if (groups == null) {
             throw new WebApplicationException(Response.Status.NOT_FOUND);
         }
-        return Response.ok(groups, MediaType.APPLICATION_JSON).build();
+        return Response.ok(groups.toString(), MediaType.APPLICATION_JSON).build();
     }
 
     @GET
@@ -145,6 +146,7 @@ public class Users {
     }
 
     static boolean isGroupMember(Integer userId, Integer groupId) {
+
         GroupService groupService = new GroupService();
         ArrayList<User> users = groupService.getGroupUsers(groupId);
         groupService.stop();
