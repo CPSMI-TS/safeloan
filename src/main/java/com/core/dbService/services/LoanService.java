@@ -8,6 +8,7 @@ import com.core.dbService.enums.LoanState;
 import org.hibernate.*;
 import org.hibernate.criterion.Restrictions;
 
+import javax.ws.rs.core.UriBuilder;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;

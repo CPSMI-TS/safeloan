@@ -57,7 +57,6 @@ public class Loan {
         this.extended = 1;
         this.loan_sum = 0.0;
         this.loan_state = 0;
-        //this.loan_date = loanDate;
         //this.loan_description = description;
     }
 
@@ -67,9 +66,7 @@ public class Loan {
         this.loan_sum = sum;
         this.loan_state = 0;
         this.users_count = usersCount;
-        //this.loan_date = loanDate;
         //this.loan_description = description;
-        //this.loan_url = loan_url;
     }
 
     public Loan(Integer payer, Double sum, Integer usersCount, String url) {

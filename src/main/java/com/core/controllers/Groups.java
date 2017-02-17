@@ -70,7 +70,7 @@ public class Groups {
         GroupService groupService = new GroupService();
         int id = groupService.addGroup(name, type);
         groupService.stop();
-        return (id == -1 ? Response.notModified().build() : Response.created(URI.create("/users/" + id)).build());
+        return (id == -1 ? Response.notModified().build() : Response.created(URI.create("/" + id)).build());
     }
 
     @POST

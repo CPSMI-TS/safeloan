@@ -1,15 +1,9 @@
 package com.core.jsonRequests;
 
-import com.core.dbService.entities.Loan;
 import com.core.dbService.entities.User;
-import com.core.dbService.services.GroupService;
-import com.core.dbService.services.LoanService;
-import com.core.dbService.services.UserService;
 import com.google.gson.Gson;
 
 import java.util.Date;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 
 /**
